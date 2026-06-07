@@ -17,3 +17,10 @@ repo_content.md
 # IDEs
 .vscode/
 .idea/
+
+# Build artifacts
+pkg/
+src/
+*.pkg.tar.zst
+*.deb
+*.rpm
