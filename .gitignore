@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Repo2MD Output
+repo_content.md
+*.md
+!README.md
+
+# IDEs
+.vscode/
+.idea/

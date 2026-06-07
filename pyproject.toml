@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "repo2md"
+version = "0.1.0"
+description = "Convert repository to MD for LLM"
+dependencies = ["questionary"]
+requires-python = ">=3.7"
+
+[project.scripts]
+repo2md = "repo2md:main"
