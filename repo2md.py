@@ -16,7 +16,14 @@ import questionary
 import sys
 
 # Настройки по умолчанию
-DEFAULT_EXTENSIONS = {'.rs', '.py', '.toml', '.md', '.js', '.ts', '.c', '.cpp', '.h', '.hpp', '.go', '.java'}
+# Расширенный список поддерживаемых расширений
+DEFAULT_EXTENSIONS = {
+    '.rs', '.py', '.toml', '.md', '.js', '.ts', '.c', '.cpp', 
+    '.h', '.hpp', '.go', '.java', '.slint', '.json', '.yaml', 
+    '.yml', '.txt', '.lock', '.sh'
+}
+
+# Папки, которые мы точно игнорируем
 IGNORE_DIRS = {'.git', 'target', 'node_modules', '__pycache__', '.venv', 'dist', 'build'}
 
 class Repo2MD:
@@ -35,18 +42,16 @@ class Repo2MD:
             return True
 
     def get_all_files(self):
-        """Рекурсивный обход и фильтрация файлов."""
         relevant_files = []
         for root, dirs, files in os.walk(self.source_path):
-            # Фильтруем папки на месте
             dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
             
             for file in files:
-                ext = Path(file).suffix
                 full_path = Path(root) / file
+                ext = full_path.suffix.lower()
                 
-                if ext in DEFAULT_EXTENSIONS and not self.is_binary(full_path):
-                    # Сохраняем относительный путь для удобства отображения
+                # Условие: расширение в белом списке ИЛИ файл текстовый без расширения
+                if (ext in DEFAULT_EXTENSIONS or ext == '') and not self.is_binary(full_path):
                     rel_path = full_path.relative_to(self.source_path)
                     relevant_files.append(str(rel_path))
         return sorted(relevant_files)

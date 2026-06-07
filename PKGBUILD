@@ -1,5 +1,5 @@
 pkgname=python-repo2md
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="CLI tool to gather repo content into a single Markdown file for LLMs"
 arch=('any')
