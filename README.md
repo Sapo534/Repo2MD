@@ -33,5 +33,11 @@ python repo2md.py
 2. Выберите файлы пробелом.
 3. Получите готовый `.md` файл.
 
+## UX
+
+![Menu](assets/ux-demo-menu.png)
+![Completed](assets/ux-demo-completed.png)
+![Gemini](assets/ux-demo-gemini.png)
+
 ## Лицензия
 Распространяется под лицензией MIT.
