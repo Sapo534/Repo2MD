@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Repo2MD: Сборщик репозитория в один Markdown-файл.
+Repo2MD: Packs a repository into a single Markdown file.
 License: MIT License
 Copyright (c) 2026
 """
@@ -15,15 +15,15 @@ from pathlib import Path
 import questionary
 import sys
 
-# Настройки по умолчанию
-# Расширенный список поддерживаемых расширений
+# Default settings
+# Expanded list of supported file extensions
 DEFAULT_EXTENSIONS = {
     '.rs', '.py', '.toml', '.md', '.js', '.ts', '.c', '.cpp', 
     '.h', '.hpp', '.go', '.java', '.slint', '.json', '.yaml', 
     '.yml', '.txt', '.lock', '.sh'
 }
 
-# Папки, которые мы точно игнорируем
+# Directories that will always be ignored
 IGNORE_DIRS = {'.git', 'target', 'node_modules', '__pycache__', '.venv', 'dist', 'build'}
 
 class Repo2MD:
@@ -33,7 +33,7 @@ class Repo2MD:
         self.files_to_process = []
 
     def is_binary(self, file_path):
-        """Проверка, является ли файл бинарным."""
+        """Check if a file is binary."""
         try:
             with open(file_path, 'rb') as f:
                 chunk = f.read(1024)
@@ -50,47 +50,47 @@ class Repo2MD:
                 full_path = Path(root) / file
                 ext = full_path.suffix.lower()
                 
-                # Условие: расширение в белом списке ИЛИ файл текстовый без расширения
+                # Condition: extension is whitelisted OR file is text-based with no extension
                 if (ext in DEFAULT_EXTENSIONS or ext == '') and not self.is_binary(full_path):
                     rel_path = full_path.relative_to(self.source_path)
                     relevant_files.append(str(rel_path))
         return sorted(relevant_files)
 
     def generate_tree(self, selected_files):
-        """Создает текстовое дерево структуры проекта из выбранных файлов."""
+        """Generates a text-based project tree structure from selected files."""
         tree = []
-        # Простая имитация дерева
+        # Simple tree mock-up
         tree.append("```")
         tree.append(f"Project Root: {self.source_path.name}")
         
-        # Для построения красивого дерева можно использовать словари, но для LLM 
-        # достаточно списка путей, если дерево слишком сложное.
-        # Здесь мы просто перечислим структуру.
+        # Dictionaries could be used for building a prettier tree, but for LLMs 
+        # a list of paths is sufficient if the tree is too complex.
+        # Here we just list out the structure.
         for path in selected_files:
             tree.append(f"├── {path}")
         tree.append("```")
         return "\n".join(tree)
 
     def process(self):
-        # 1. Сбор всех подходящих файлов
+        # 1. Collect all suitable files
         all_files = self.get_all_files()
         
         if not all_files:
-            print("Подходящие файлы не найдены.")
+            print("No matching files found.")
             return
 
-        # 2. Интерактивный выбор
+        # 2. Interactive selection
         selected_files = questionary.checkbox(
-            "Выберите файлы/директории для включения в финальный файл:",
+            "Select files/directories to include in the final file:",
             choices=[questionary.Choice(f, checked=True) for f in all_files]
         ).ask()
 
         if not selected_files:
-            print("Ничего не выбрано.")
+            print("Nothing selected.")
             return
 
-        # 3. Генерация контента
-        print(f"Сборка данных в {self.output_file}...")
+        # 3. Content generation
+        print(f"Compiling data into {self.output_file}...")
         
         try:
             with open(self.output_file, 'w', encoding='utf-8') as out:
@@ -102,7 +102,7 @@ class Repo2MD:
                 for rel_path in selected_files:
                     full_path = self.source_path / rel_path
                     ext = full_path.suffix.lstrip('.')
-                    # Маппинг для подсветки (упрощенный)
+                    # Mapping for code syntax highlighting (simplified)
                     lang = ext if ext else "text"
                     
                     out.write(f"### File: {rel_path}\n")
@@ -114,15 +114,15 @@ class Repo2MD:
                         out.write(f"Error reading file: {e}")
                     out.write("\n```\n\n")
             
-            print(f"Готово! Файл сохранен: {Path(self.output_file).resolve()}")
+            print(f"Done! File saved to: {Path(self.output_file).resolve()}")
             
         except Exception as e:
-            print(f"Ошибка при записи файла: {e}")
+            print(f"Error writing file: {e}")
 
 def clone_git_repo(repo_url):
-    """Клонирует репозиторий во временную папку."""
+    """Clones the repository into a temporary directory."""
     temp_dir = tempfile.mkdtemp()
-    print(f"Клонирование репозитория {repo_url} во временную папку...")
+    print(f"Cloning repository {repo_url} into a temporary folder...")
     try:
         subprocess.run(
             ['git', 'clone', '--depth', '1', repo_url, temp_dir],
@@ -131,13 +131,13 @@ def clone_git_repo(repo_url):
         return temp_dir
     except subprocess.CalledProcessError as e:
         shutil.rmtree(temp_dir)
-        print(f"Ошибка Git: {e.stderr.decode()}")
+        print(f"Git Error: {e.stderr.decode()}")
         return None
 
 def main():
     print("--- Repo2MD: Repository to LLM-ready Markdown ---")
     
-    target = questionary.text("Введите путь к локальной папке или URL GitHub/GitLab:").ask()
+    target = questionary.text("Enter path to a local folder or a GitHub/GitLab URL:").ask()
     
     if not target:
         return
@@ -154,22 +154,22 @@ def main():
         else:
             work_path = target
             if not os.path.exists(work_path):
-                print(f"Путь {work_path} не существует.")
+                print(f"Path '{work_path}' does not exist.")
                 return
 
-        output_name = questionary.text("Введите имя выходного файла:", default="repo_content.md").ask()
+        output_name = questionary.text("Enter output filename:", default="repo_content.md").ask()
         
         processor = Repo2MD(work_path, output_name)
         processor.process()
 
     finally:
         if temp_path and os.path.exists(temp_path):
-            print("Очистка временных файлов...")
+            print("Cleaning up temporary files...")
             shutil.rmtree(temp_path)
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\nВыход из программы.")
+        print("\nExiting program.")
         sys.exit(0)
