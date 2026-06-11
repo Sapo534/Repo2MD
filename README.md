@@ -1,43 +1,50 @@
-# Repo2MD 
+# Repo2MD
 
-**Repo2MD** — это CLI-инструмент для разработчиков, который собирает весь исходный код вашего репозитория (локального или с GitHub) в один структурированный Markdown-файл. 
+**Repo2MD** is a CLI tool for developers that compiles the entire source code of your repository (either local or from GitHub) into a single, structured Markdown file.
 
-Инструмент создан специально для подготовки контекста при работе с **LLM** (ChatGPT, Claude, Gemini), позволяя моделям "видеть" весь ваш проект целиком.
+The tool is specifically designed to prepare context for working with **LLMs** (ChatGPT, Claude, Gemini), allowing models to "see" your entire project as a whole.
 
-## Особенности
-- **Интерактивность**: Выбирайте нужные файлы и папки через удобное терминальное меню.
-- **Фильтрация**: Автоматически игнорирует бинарные файлы, изображения и служебные папки (`.git`, `node_modules`, `target` и т.д.).
-- **Git-интеграция**: Просто вставьте URL репозитория, и инструмент сам его клонирует, обработает и удалит временные файлы.
-- **Форматирование для ИИ**: Создает текстовое дерево проекта и упаковывает код в блоки.
+## Features
 
-## Установка
+* **Interactive**: Select the files and folders you need using a user-friendly terminal menu.
+* **Filtering**: Automatically ignores binary files, images, and system directories (`.git`, `node_modules`, `target`, etc.).
+* **Git Integration**: Just paste the repository URL, and the tool will automatically clone it, process it, and clean up temporary files.
+* **AI-Optimized Formatting**: Generates a text-based project tree and wraps code into clean markdown blocks.
+
+## Installation
 
 ### Arch Linux
-Вы можете собрать пакет с помощью предоставленного `PKGBUILD`:
+
+You can build the package using the provided `PKGBUILD`:
+
 ```bash
 git clone https://github.com/Sapo534/Repo2MD.git
 cd Repo2MD
 makepkg -si
+
 ```
 
-### Универсальная установка (Python)
+### Universal Installation (Python)
+
 ```bash
 pip install questionary
-# Скачайте repo2md.py и запускайте:
+# Download repo2md.py and run:
 python repo2md.py
+
 ```
 
-## Использование
-Просто введите `repo2md` в терминале и следуйте подсказкам:
-1. Укажите путь к папке или URL.
-2. Выберите файлы пробелом.
-3. Получите готовый `.md` файл.
+## Usage
+
+Simply type `repo2md` in your terminal and follow the prompts:
+
+1. Provide the folder path or repository URL.
+2. Select files using the Spacebar.
+3. Get your ready-to-use `.md` file.
 
 ## UX
-
 ![Menu](assets/ux-demo-menu.png)
 ![Completed](assets/ux-demo-completed.png)
 ![Gemini](assets/ux-demo-gemini.png)
+## License
 
-## Лицензия
-Распространяется под лицензией MIT.
+Distributed under the MIT License.
