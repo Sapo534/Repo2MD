@@ -1,3 +1,5 @@
+![AI-Friendly](https://img.shields.io/badge/AI--Friendly-Zone-green?style=flat-square)
+
 # Repo2MD
 
 **Repo2MD** is a CLI tool for developers that compiles the entire source code of your repository (either local or from GitHub) into a single, structured Markdown file.
