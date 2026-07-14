@@ -46,7 +46,7 @@ Simply type `repo2md` in your terminal and follow the prompts:
 ## UX
 ![Menu](assets/ux-demo-menu.png)
 ![Completed](assets/ux-demo-completed.png)
-![Gemini](assets/ux-demo-gemini.png)
+![AI](assets/ux-demo-ai.png)
 ## License
 
 Distributed under the MIT License.
