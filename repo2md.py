@@ -14,16 +14,17 @@ import tempfile
 from pathlib import Path
 import questionary
 import sys
+import pathspec  # Add this import
 
 # Default settings
-# Expanded list of supported file extensions
+# We'll keep these but they'll be overridden by .gitignore
 DEFAULT_EXTENSIONS = {
     '.rs', '.py', '.toml', '.md', '.js', '.ts', '.c', '.cpp', 
     '.h', '.hpp', '.go', '.java', '.slint', '.json', '.yaml', 
     '.yml', '.txt', '.lock', '.sh'
 }
 
-# Directories that will always be ignored
+# Directories that will always be ignored (hardcoded fallback)
 IGNORE_DIRS = {'.git', 'target', 'node_modules', '__pycache__', '.venv', 'dist', 'build'}
 
 class Repo2MD:
@@ -31,6 +32,42 @@ class Repo2MD:
         self.source_path = Path(source_path).resolve()
         self.output_file = output_file
         self.files_to_process = []
+        self.gitignore_spec = None
+        self._load_gitignore()  # Load .gitignore on init
+
+    def _load_gitignore(self):
+        """Load .gitignore patterns if they exist"""
+        gitignore_path = self.source_path / '.gitignore'
+        if gitignore_path.exists():
+            try:
+                with open(gitignore_path, 'r', encoding='utf-8') as f:
+                    patterns = f.read().splitlines()
+                # Filter out empty lines and comments
+                patterns = [p.strip() for p in patterns if p.strip() and not p.strip().startswith('#')]
+                if patterns:
+                    self.gitignore_spec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+                    print(f"Loaded {len(patterns)} patterns from .gitignore")
+                else:
+                    self.gitignore_spec = None
+            except Exception as e:
+                print(f"Warning: Could not parse .gitignore: {e}")
+                self.gitignore_spec = None
+        else:
+            print("No .gitignore found, using default filters")
+            self.gitignore_spec = None
+
+    def _should_ignore(self, file_path):
+        """Check if file should be ignored based on .gitignore"""
+        if self.gitignore_spec is None:
+            return False
+        
+        try:
+            rel_path = file_path.relative_to(self.source_path)
+            # Check if path matches any ignore pattern
+            return self.gitignore_spec.match_file(str(rel_path))
+        except ValueError:
+            # File might be outside the source path
+            return False
 
     def is_binary(self, file_path):
         """Check if a file is binary."""
@@ -41,31 +78,58 @@ class Repo2MD:
         except Exception:
             return True
 
+    def _is_allowed_extension(self, file_path):
+        """Check if file has an allowed extension (fallback when no .gitignore)"""
+        ext = file_path.suffix.lower()
+        # If we have .gitignore, we don't need extension filtering
+        if self.gitignore_spec is not None:
+            return True
+        # Fallback to extension whitelist
+        return ext in DEFAULT_EXTENSIONS or ext == ''
+
     def get_all_files(self):
         relevant_files = []
+        
         for root, dirs, files in os.walk(self.source_path):
-            dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
+            # Always skip .git directory
+            if '.git' in dirs:
+                dirs.remove('.git')
+            
+            # Filter directories based on .gitignore (optimization)
+            filtered_dirs = []
+            for d in dirs:
+                dir_path = Path(root) / d
+                if not self._should_ignore(dir_path):
+                    filtered_dirs.append(d)
+            dirs[:] = filtered_dirs
             
             for file in files:
                 full_path = Path(root) / file
-                ext = full_path.suffix.lower()
                 
-                # Condition: extension is whitelisted OR file is text-based with no extension
-                if (ext in DEFAULT_EXTENSIONS or ext == '') and not self.is_binary(full_path):
-                    rel_path = full_path.relative_to(self.source_path)
-                    relevant_files.append(str(rel_path))
+                # Check .gitignore first
+                if self._should_ignore(full_path):
+                    continue
+                
+                # Check extension (only if no .gitignore)
+                if not self._is_allowed_extension(full_path):
+                    continue
+                
+                # Check if binary
+                if self.is_binary(full_path):
+                    continue
+                
+                # All checks passed, include the file
+                rel_path = full_path.relative_to(self.source_path)
+                relevant_files.append(str(rel_path))
+        
         return sorted(relevant_files)
 
     def generate_tree(self, selected_files):
         """Generates a text-based project tree structure from selected files."""
         tree = []
-        # Simple tree mock-up
         tree.append("```")
         tree.append(f"Project Root: {self.source_path.name}")
         
-        # Dictionaries could be used for building a prettier tree, but for LLMs 
-        # a list of paths is sufficient if the tree is too complex.
-        # Here we just list out the structure.
         for path in selected_files:
             tree.append(f"├── {path}")
         tree.append("```")
@@ -77,6 +141,7 @@ class Repo2MD:
         
         if not all_files:
             print("No matching files found.")
+            print("Try checking your .gitignore or default extensions.")
             return
 
         # 2. Interactive selection
