@@ -14,17 +14,9 @@ import tempfile
 from pathlib import Path
 import questionary
 import sys
-import pathspec  # Add this import
+import pathspec
 
-# Default settings
-# We'll keep these but they'll be overridden by .gitignore
-DEFAULT_EXTENSIONS = {
-    '.rs', '.py', '.toml', '.md', '.js', '.ts', '.c', '.cpp', 
-    '.h', '.hpp', '.go', '.java', '.slint', '.json', '.yaml', 
-    '.yml', '.txt', '.lock', '.sh'
-}
-
-# Directories that will always be ignored (hardcoded fallback)
+# Директории, которые всегда игнорируются (хардкорный fallback)
 IGNORE_DIRS = {'.git', 'target', 'node_modules', '__pycache__', '.venv', 'dist', 'build'}
 
 class Repo2MD:
@@ -78,24 +70,15 @@ class Repo2MD:
         except Exception:
             return True
 
-    def _is_allowed_extension(self, file_path):
-        """Check if file has an allowed extension (fallback when no .gitignore)"""
-        ext = file_path.suffix.lower()
-        # If we have .gitignore, we don't need extension filtering
-        if self.gitignore_spec is not None:
-            return True
-        # Fallback to extension whitelist
-        return ext in DEFAULT_EXTENSIONS or ext == ''
-
     def get_all_files(self):
         relevant_files = []
         
         for root, dirs, files in os.walk(self.source_path):
-            # Always skip .git directory
+            # Всегда пропускаем .git директорию
             if '.git' in dirs:
                 dirs.remove('.git')
             
-            # Filter directories based on .gitignore (optimization)
+            # Фильтруем директории на основе .gitignore (оптимизация)
             filtered_dirs = []
             for d in dirs:
                 dir_path = Path(root) / d
@@ -106,19 +89,15 @@ class Repo2MD:
             for file in files:
                 full_path = Path(root) / file
                 
-                # Check .gitignore first
+                # Проверяем .gitignore
                 if self._should_ignore(full_path):
                     continue
                 
-                # Check extension (only if no .gitignore)
-                if not self._is_allowed_extension(full_path):
-                    continue
-                
-                # Check if binary
+                # Проверяем, не бинарный ли файл
                 if self.is_binary(full_path):
                     continue
                 
-                # All checks passed, include the file
+                # Все проверки пройдены, включаем файл
                 rel_path = full_path.relative_to(self.source_path)
                 relevant_files.append(str(rel_path))
         
@@ -141,7 +120,7 @@ class Repo2MD:
         
         if not all_files:
             print("No matching files found.")
-            print("Try checking your .gitignore or default extensions.")
+            print("Try checking your .gitignore or default filters.")
             return
 
         # 2. Interactive selection
