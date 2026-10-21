@@ -4,10 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "repo2md"
-version = "0.1.1"
-description = "Convert repository to MD for LLM"
-dependencies = ["questionary"]
-requires-python = ">=3.7"
+version = "0.1.2"
+description = "Convert repository to Markdown for LLMs"
+dependencies = [
+    "questionary>=2.0.0",
+    "pathspec>=0.11.0"
+]
+requires-python = ">=3.8"
 
 [project.scripts]
 repo2md = "repo2md:main"
